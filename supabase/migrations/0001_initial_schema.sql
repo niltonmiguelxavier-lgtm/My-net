@@ -202,7 +202,7 @@ create or replace function public.refresh_seller_rating() returns trigger langua
 declare sid uuid;
 begin
  if tg_op='DELETE' then sid=old.seller_id; else sid=new.seller_id; end if;
- if tg_op='UPDATE' and old.seller_id is distinct from new.seller_id then update public.sellers set average_rating=coalesce((select round(avg(rating)::numeric,2) from public.reviews where seller_id=old.seller_id and status='published'),0), reviews_count=(select count(*) from public.reviews where seller_id=old.seller_id and status='published')) where id=old.seller_id; end if;
+ if tg_op='UPDATE' and old.seller_id is distinct from new.seller_id then update public.sellers set average_rating=coalesce((select round(avg(rating)::numeric,2) from public.reviews where seller_id=old.seller_id and status='published'),0), reviews_count=(select count(*) from public.reviews where seller_id=old.seller_id and status='published') where id=old.seller_id; end if;
  update public.sellers set average_rating=coalesce((select round(avg(rating)::numeric,2) from public.reviews where seller_id=sid and status='published'),0), reviews_count=(select count(*) from public.reviews where seller_id=sid and status='published') where id=sid;
  if tg_op='DELETE' then return old; else return new; end if;
 end $$;
