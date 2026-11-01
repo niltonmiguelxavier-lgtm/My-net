@@ -1,0 +1,8 @@
+"use client";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { Compass, Heart, LayoutDashboard, Settings, Store, Users, ShieldCheck } from "lucide-react";
+const customer=[{href:"/dashboard",label:"Início",Icon:LayoutDashboard},{href:"/pesquisa",label:"Explorar",Icon:Compass},{href:"/cliente/favoritos",label:"Favoritos",Icon:Heart},{href:"/dashboard#perfil",label:"Perfil",Icon:Settings}];
+const seller=[{href:"/vendedor/dashboard",label:"Início",Icon:LayoutDashboard},{href:"/vendedor/dashboard#anuncios",label:"Anúncios",Icon:Store},{href:"/vendedor/dashboard#contactos",label:"Contactos",Icon:Users},{href:"/vendedor/dashboard#perfil",label:"Perfil",Icon:Settings}];
+const admin=[{href:"/admin",label:"Resumo",Icon:LayoutDashboard},{href:"/admin#candidaturas",label:"Vendedores",Icon:Store},{href:"/admin#anuncios",label:"Anúncios",Icon:ShieldCheck},{href:"/admin#denuncias",label:"Denúncias",Icon:Users}];
+export function BottomNav({role}:{role:"customer"|"seller"|"admin"}){const path=usePathname();const links=role==="admin"?admin:role==="seller"?seller:customer;return <nav aria-label="Navegação móvel" className="fixed inset-x-0 bottom-0 z-50 grid grid-cols-4 border-t border-slate-200 bg-white/95 px-2 pb-[env(safe-area-inset-bottom)] pt-2 shadow-[0_-6px_20px_rgba(15,23,42,.08)] backdrop-blur md:hidden">{links.map(({href,label,Icon})=>{const active=href.split("#")[0]===path;return <Link key={href} href={href} className={`flex min-h-12 flex-col items-center justify-center gap-1 text-[10px] font-semibold ${active?"text-brand":"text-slate-500"}`}><Icon size={19} strokeWidth={active?2.5:2}/><span>{label}</span></Link>})}</nav>}
