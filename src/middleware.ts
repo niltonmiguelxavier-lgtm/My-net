@@ -1,4 +1,4 @@
-import { createServerClient } from "@supabase/ssr";
+import { createServerClient, type SetAllCookies } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 export async function middleware(request: NextRequest) {
@@ -8,7 +8,7 @@ export async function middleware(request: NextRequest) {
   if (url && key) {
     const supabase = createServerClient(url, key, { cookies: {
       getAll: () => request.cookies.getAll(),
-      setAll: (items) => { items.forEach(({ name, value }) => request.cookies.set(name, value)); response = NextResponse.next({ request }); items.forEach(({ name, value, options }) => response.cookies.set(name, value, options)); }
+      setAll: (items: Parameters<NonNullable<SetAllCookies>>[0]) => { items.forEach(({ name, value }) => request.cookies.set(name, value)); response = NextResponse.next({ request }); items.forEach(({ name, value, options }) => response.cookies.set(name, value, options)); }
     } });
     const { data: { user } } = await supabase.auth.getUser();
     if (request.nextUrl.pathname.startsWith("/dashboard") && !user) return NextResponse.redirect(new URL("/login", request.url));
