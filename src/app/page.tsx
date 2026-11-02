@@ -1,10 +1,11 @@
 import Link from "next/link";
-import { ArrowRight, Wifi, Radio, Router, Satellite, Building2, Search, ShieldCheck, MapPin, Zap } from "lucide-react";
+import { ArrowRight, Wifi, Radio, Router, Satellite, Building2, Search, ShieldCheck, MapPin, Zap, Menu, X, ChevronDown } from "lucide-react";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 const categoryIcons = [Wifi, Router, Zap, Radio, Satellite, Building2];
 type HomeListing = { id: string; title: string; price_mzn: number; connection_type: string; city: string; province: string; seller: { business_name: string } | null; category: { name: string } | null };
 type HomeSeller = { id: string; business_name: string; province: string; average_rating: number; reviews_count: number };
+
 export default async function HomePage() {
   const supabase = await createSupabaseServerClient();
   let categories: { id: string; name: string; slug: string }[] = [];
@@ -18,21 +19,345 @@ export default async function HomePage() {
     ]);
     categories = cats.data ?? []; listings = (offers.data ?? []) as unknown as HomeListing[]; sellers = (sellersResult.data ?? []) as HomeSeller[];
   }
-  return <main>
-    <header className="mx-auto flex max-w-7xl items-center justify-between px-5 py-5 md:px-8"><Link href="/" className="flex items-center gap-2.5"><span className="grid h-10 w-10 place-items-center rounded-xl bg-brand text-white"><Wifi size={22}/></span><span className="text-xl font-extrabold tracking-tight text-ink">my<span className="text-brand">net</span></span></Link><nav className="flex items-center gap-2 sm:gap-4"><Link href="/pesquisa" className="hidden text-sm font-semibold text-slate-600 md:block">Explorar</Link><Link href="/#categorias" className="hidden text-sm font-semibold text-slate-600 lg:block">Categorias</Link><Link href="/planos" className="hidden text-sm font-semibold text-slate-600 lg:block">Planos</Link><Link href="/#sobre" className="hidden text-sm font-semibold text-slate-600 lg:block">Sobre</Link><Link href="/#contacto" className="hidden text-sm font-semibold text-slate-600 lg:block">Contacto</Link><Link href="/login" className="rounded-lg px-3 py-2 text-sm font-semibold text-ink">Entrar</Link><Link href="/register" className="rounded-lg bg-brand px-4 py-2.5 text-sm font-bold text-white hover:bg-brand-dark">Criar conta</Link></nav></header>
-    <section className="relative overflow-hidden bg-[#f2f8f6]"><div className="mx-auto grid max-w-7xl items-center gap-10 px-5 py-16 md:px-8 md:py-24 lg:grid-cols-[1.1fr_.9fr]"><div><span className="inline-flex items-center gap-2 rounded-full border border-teal-100 bg-white px-3 py-1.5 text-xs font-bold text-brand"><MapPin size={14}/> CONECTIVIDADE EM MOÇAMBIQUE</span><h1 className="mt-6 max-w-2xl text-4xl font-extrabold leading-tight tracking-tight text-ink sm:text-5xl lg:text-6xl">A Internet certa para <span className="text-brand">o teu mundo.</span></h1><p className="mt-5 max-w-xl text-lg leading-8 text-slate-600">Compara serviços, encontra fornecedores na tua zona e fala directamente com quem pode ligar-te.</p>
-      <form action="/pesquisa" className="mt-8 flex flex-col gap-2 rounded-2xl bg-white p-2 shadow-soft sm:flex-row"><div className="flex flex-1 items-center gap-3 px-3"><Search className="shrink-0 text-brand" size={20}/><input name="q" aria-label="Pesquisar serviços" placeholder="O que procuras? Fibra, Wi-Fi, dados…" className="w-full border-0 py-3 text-sm focus:ring-0"/></div><input name="province" placeholder="Província" aria-label="Província" className="rounded-xl border-slate-200 py-3 text-sm sm:w-40"/><button className="inline-flex items-center justify-center gap-2 rounded-xl bg-brand px-5 py-3 font-bold text-white hover:bg-brand-dark">Pesquisar <ArrowRight size={17}/></button></form>
-      <div className="mt-5 flex items-center gap-2 text-sm text-slate-500"><ShieldCheck size={17} className="text-brand"/>Vendedores verificados pela equipa My Net</div></div>
-      <div className="relative mx-auto w-full max-w-md"><div className="absolute -inset-5 rounded-[2.5rem] bg-teal-100/70 blur-2xl"/><div className="relative rounded-[2rem] border border-white bg-white p-5 shadow-soft sm:p-7"><div className="flex items-center justify-between"><div><p className="text-xs font-bold uppercase tracking-wider text-brand">A ligação ideal</p><p className="mt-1 text-lg font-bold text-ink">Começa por aqui</p></div><span className="grid h-11 w-11 place-items-center rounded-full bg-brand-pale text-brand"><Wifi size={22}/></span></div><div className="mt-6 space-y-3">{([{title:"Internet residencial",desc:"Para a casa toda",Icon:Router},{title:"Dados móveis",desc:"Liga-te em qualquer lugar",Icon:Wifi},{title:"Internet via satélite",desc:"Também fora dos centros",Icon:Satellite}]).map(({title,desc,Icon})=><Link key={title} href={`/pesquisa?q=${encodeURIComponent(title)}`} className="flex items-center gap-4 rounded-xl border border-slate-100 p-4 hover:border-teal-200 hover:bg-teal-50/40"><span className="grid h-10 w-10 place-items-center rounded-lg bg-slate-50 text-brand"><Icon size={19}/></span><span className="flex-1"><b className="block text-sm text-ink">{title}</b><span className="mt-1 block text-xs text-slate-500">{desc}</span></span><ArrowRight size={17} className="text-slate-400"/></Link>)}</div><p className="mt-5 border-t border-slate-100 pt-4 text-center text-xs text-slate-500">Descoberta simples. Escolha tua.</p></div></div>
-    </div></section>
-    <section id="categorias" className="mx-auto max-w-7xl px-5 py-14 md:px-8"><div className="flex items-end justify-between"><div><p className="text-sm font-bold uppercase tracking-widest text-brand">Explora</p><h2 className="mt-2 text-2xl font-extrabold text-ink sm:text-3xl">Categorias de Internet</h2></div><Link href="/pesquisa" className="hidden items-center gap-1 text-sm font-bold text-brand sm:flex">Ver todos <ArrowRight size={16}/></Link></div>
-      {categories.length ? <div className="mt-7 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">{categories.map((c,i)=>{const Icon=categoryIcons[i%categoryIcons.length];return <Link key={c.id} href={`/pesquisa?category=${c.slug}`} className="rounded-2xl border border-slate-200 p-4 transition hover:-translate-y-0.5 hover:border-teal-300 hover:shadow-soft"><span className="grid h-11 w-11 place-items-center rounded-xl bg-brand-pale text-brand"><Icon size={21}/></span><span className="mt-4 block text-sm font-bold leading-5 text-ink">{c.name}</span></Link>})}</div> : <div className="mt-7 rounded-2xl border border-dashed border-slate-300 px-5 py-8 text-center text-sm text-slate-500">{supabase ? "As categorias estarão disponíveis depois de aplicar a migration do Supabase." : "Liga o Supabase para carregar categorias e ofertas reais."}</div>}
+
+  return <main className="relative">
+    {/* Header Moderno */}
+    <header className="fixed top-0 z-50 w-full border-b bg-white/80 backdrop-blur-md transition-all">
+      <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 md:px-8">
+        <Link href="/" className="flex items-center gap-2.5">
+          <span className="grid h-10 w-10 place-items-center rounded-xl bg-brand text-white">
+            <Wifi size={22} />
+          </span>
+          <span className="text-xl font-extrabold tracking-tight text-ink">
+            my<span className="text-brand">net</span>
+          </span>
+        </Link>
+        
+        {/* Desktop Nav */}
+        <nav className="hidden items-center gap-2 sm:gap-4 lg:flex">
+          <Link href="/pesquisa" className="text-sm font-semibold text-slate-600 hover:text-brand transition-colors">
+            Explorar vendedores
+          </Link>
+          <Link href="/#categorias" className="text-sm font-semibold text-slate-600 hover:text-brand transition-colors">
+            Categorias
+          </Link>
+          <Link href="/#como-funciona" className="text-sm font-semibold text-slate-600 hover:text-brand transition-colors">
+            Como funciona
+          </Link>
+          <Link href="/planos" className="text-sm font-semibold text-slate-600 hover:text-brand transition-colors">
+            Planos para vendedores
+          </Link>
+          <Link href="/#suporte" className="text-sm font-semibold text-slate-600 hover:text-brand transition-colors">
+            Suporte
+          </Link>
+          <Link href="/login" className="rounded-lg px-3 py-2 text-sm font-semibold text-ink hover:bg-slate-50 transition-colors">
+            Entrar
+          </Link>
+          <Link href="/register" className="rounded-lg bg-brand px-4 py-2.5 text-sm font-bold text-white hover:bg-brand-dark transition-colors">
+            Criar conta
+          </Link>
+        </nav>
+
+        {/* Mobile Menu Toggle */}
+        <div className="lg:hidden">
+          <button className="text-slate-600 hover:text-brand transition-colors">
+            <Menu size={24} />
+          </button>
+        </div>
+      </div>
+    </header>
+
+    {/* Hero Section */}
+    <section className="relative overflow-hidden bg-[#f2f8f6] pt-24 pb-32 lg:pt-32 lg:pb-40">
+      <div className="mx-auto grid max-w-7xl items-center gap-10 px-5 md:px-8 lg:grid-cols-[1.1fr_.9fr]">
+        <div>
+          <span className="inline-flex items-center gap-2 rounded-full border border-teal-100 bg-white px-3 py-1.5 text-xs font-bold text-brand">
+            <MapPin size={14} /> CONECTIVIDADE EM MOÇAMBIQUE
+          </span>
+          <h1 className="mt-6 max-w-2xl text-4xl font-extrabold leading-tight tracking-tight text-ink sm:text-5xl lg:text-6xl">
+            Encontre os melhores vendedores de internet num só lugar.
+          </h1>
+          <p className="mt-5 max-w-xl text-lg leading-8 text-slate-600">
+            Descubra vendedores, compare ofertas, explore serviços e encontre soluções de internet de forma simples e segura.
+          </p>
+          
+          {/* Barra de Pesquisa Moderna */}
+          <form action="/pesquisa" className="mt-8 flex flex-col gap-2 rounded-2xl bg-white p-2 shadow-soft sm:flex-row">
+            <div className="flex flex-1 items-center gap-3 px-3">
+              <Search className="shrink-0 text-brand" size={20} />
+              <input 
+                name="q" 
+                aria-label="Pesquisar serviços" 
+                placeholder="Nome do vendedor, negócio, tipo de internet, produto..." 
+                className="w-full border-0 py-3 text-sm focus:ring-0"
+              />
+            </div>
+            <input 
+              name="province" 
+              placeholder="Localização" 
+              aria-label="Localização" 
+              className="rounded-xl border-slate-200 py-3 text-sm sm:w-40"
+            />
+            <button className="inline-flex items-center justify-center gap-2 rounded-xl bg-brand px-5 py-3 font-bold text-white hover:bg-brand-dark transition-all">
+              Explorar vendedores <ArrowRight size={17} />
+            </button>
+          </form>
+          
+          <div className="mt-5 flex items-center gap-2 text-sm text-slate-500">
+            <ShieldCheck size={17} className="text-brand" /> Vendedores verificados pela equipa My Net
+          </div>
+          
+          <div className="mt-8 flex gap-4">
+            <Link href="/register" className="inline-flex items-center justify-center gap-2 rounded-xl bg-ink px-6 py-3 font-bold text-white hover:bg-slate-800 transition-all">
+              Criar conta <ArrowRight size={18} />
+            </Link>
+          </div>
+        </div>
+        
+        {/* Visual Element - Connectivity & Commerce */}
+        <div className="relative mx-auto w-full max-w-md">
+          <div className="absolute -inset-5 rounded-[2.5rem] bg-teal-100/70 blur-2xl" />
+          <div className="relative rounded-[2rem] border border-white bg-white p-5 shadow-soft sm:p-7">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-wider text-brand">A ligação ideal</p>
+                <p className="mt-1 text-lg font-bold text-ink">Começa por aqui</p>
+              </div>
+              <span className="grid h-11 w-11 place-items-center rounded-full bg-brand-pale text-brand">
+                <Wifi size={22} />
+              </span>
+            </div>
+            <div className="mt-6 space-y-3">
+              {[
+                { title: "Internet residencial", desc: "Para a casa toda", Icon: Router },
+                { title: "Dados móveis", desc: "Liga-te em qualquer lugar", Icon: Wifi },
+                { title: "Internet via satélite", desc: "Também fora dos centros", Icon: Satellite }
+              ].map(({ title, desc, Icon }) => (
+                <Link 
+                  key={title} 
+                  href={`/pesquisa?q=${encodeURIComponent(title)}`} 
+                  className="flex items-center gap-4 rounded-xl border border-slate-100 p-4 hover:border-teal-200 hover:bg-teal-50/40 transition-all"
+                >
+                  <span className="grid h-10 w-10 place-items-center rounded-lg bg-slate-50 text-brand">
+                    <Icon size={19} />
+                  </span>
+                  <span className="flex-1">
+                    <b className="block text-sm text-ink">{title}</b>
+                    <span className="mt-1 block text-xs text-slate-500">{desc}</span>
+                  </span>
+                  <ArrowRight size={17} className="text-slate-400" />
+                </Link>
+              ))}
+            </div>
+            <p className="mt-5 border-t border-slate-100 pt-4 text-center text-xs text-slate-500">
+              Descoberta simples. Escolha tua.
+            </p>
+          </div>
+        </div>
+      </div>
     </section>
-    <section className="bg-slate-50"><div className="mx-auto max-w-7xl px-5 py-14 md:px-8"><div className="flex items-end justify-between"><div><p className="text-sm font-bold uppercase tracking-widest text-brand">Escolhe com confiança</p><h2 className="mt-2 text-2xl font-extrabold text-ink sm:text-3xl">Ofertas em destaque</h2></div><Link href="/pesquisa" className="hidden items-center gap-1 text-sm font-bold text-brand sm:flex">Pesquisar ofertas <ArrowRight size={16}/></Link></div>
-      {listings.length ? <div className="mt-7 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{listings.map((l)=><Link key={l.id} href={`/anuncios/${l.id}`} className="rounded-2xl border border-slate-200 bg-white p-5 hover:shadow-soft"><span className="rounded-full bg-brand-pale px-3 py-1 text-xs font-bold text-brand">{l.category?.name ?? l.connection_type}</span><h3 className="mt-4 text-lg font-bold text-ink">{l.title}</h3><p className="mt-2 text-sm text-slate-500">{l.seller?.business_name}</p><div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-4"><span className="text-sm text-slate-500">{l.city}, {l.province}</span><b className="text-lg text-brand">{Number(l.price_mzn).toLocaleString("pt-MZ")} MT</b></div></Link>)}</div> : <div className="mt-7 rounded-2xl border border-dashed border-slate-300 bg-white px-5 py-9 text-center"><p className="font-semibold text-ink">Ainda não há ofertas publicadas</p><p className="mt-2 text-sm text-slate-500">Quando vendedores aprovados publicarem anúncios, aparecerão aqui.</p></div>}
-    </div></section>
-    <section id="vendedores" className="mx-auto max-w-7xl px-5 py-14 md:px-8"><div className="flex items-end justify-between"><div><p className="text-sm font-bold uppercase tracking-widest text-brand">Fornecedores verificados</p><h2 className="mt-2 text-2xl font-extrabold text-ink sm:text-3xl">Vendedores em destaque</h2></div><Link href="/pesquisa" className="text-sm font-bold text-brand">Explorar ofertas <ArrowRight size={15} className="inline"/></Link></div>{sellers.length ? <div className="mt-7 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">{sellers.map((seller)=><Link href={`/pesquisa?seller=${seller.id}`} key={seller.id} className="block rounded-2xl border border-slate-200 bg-white p-5 transition hover:border-teal-300 hover:shadow-sm"><div className="flex items-center justify-between gap-3"><h3 className="font-bold text-ink">{seller.business_name}</h3><span className="shrink-0 rounded-full bg-teal-50 px-2.5 py-1 text-xs font-bold text-brand">Aprovado</span></div><p className="mt-2 flex items-center gap-1 text-sm text-slate-500"><MapPin size={14}/>{seller.province}</p><p className="mt-3 text-sm text-amber-600">★ {Number(seller.average_rating).toFixed(1)} <span className="text-slate-500">· {seller.reviews_count} avaliações</span></p></Link>)}</div> : <p className="mt-6 rounded-xl border border-dashed p-6 text-sm text-slate-500">Os vendedores aprovados aparecerão aqui.</p>}</section>
-    <section id="sobre" className="mx-auto grid max-w-7xl gap-10 px-5 py-14 md:px-8 lg:grid-cols-2"><div><p className="text-sm font-bold uppercase tracking-widest text-brand">Como funciona</p><h2 className="mt-2 text-3xl font-extrabold text-ink">Três passos para te ligares.</h2><div className="mt-7 space-y-5">{[["01","Pesquisa","Diz-nos o que precisas e onde estás."],["02","Compara","Vê preços, tecnologias e vendedores aprovados."],["03","Contacta","Fala directamente com o fornecedor da tua escolha."]].map(([n,t,d])=><div key={n} className="flex gap-4"><span className="text-sm font-extrabold text-brand">{n}</span><div><h3 className="font-bold text-ink">{t}</h3><p className="mt-1 text-sm text-slate-500">{d}</p></div></div>)}</div></div><div id="contacto" className="rounded-3xl bg-ink p-7 text-white sm:p-9"><span className="grid h-12 w-12 place-items-center rounded-xl bg-white/10 text-teal-200"><Zap size={23}/></span><h2 className="mt-5 text-2xl font-extrabold">Tens um serviço de Internet?</h2><p className="mt-3 max-w-md leading-7 text-slate-300">Cria um perfil comercial e apresenta as tuas ofertas a clientes em todo o país. Os anúncios só ficam disponíveis após aprovação.</p><p className="mt-3 text-sm text-slate-300">Para questões sobre um serviço, contacta o fornecedor através da página da respectiva oferta.</p><Link href="/vendedor/candidatura" className="mt-6 inline-flex items-center gap-2 rounded-xl bg-white px-5 py-3 font-bold text-ink">Tornar-me vendedor <ArrowRight size={17}/></Link></div></section>
-    <section className="border-t border-slate-100"><div className="mx-auto flex max-w-7xl flex-col gap-4 px-5 py-7 text-sm text-slate-500 sm:flex-row sm:items-center sm:justify-between md:px-8"><Link href="/" className="font-extrabold text-ink">mynet</Link><span>Marketplace de conectividade em Moçambique · Preços em MT</span><div className="flex gap-4"><Link href="/planos" className="hover:text-brand">Planos</Link><Link href="/login" className="hover:text-brand">Entrar</Link><Link href="/register" className="hover:text-brand">Criar conta</Link></div></div></section>
+
+    {/* Categorias */}
+    <section id="categorias" className="mx-auto max-w-7xl px-5 py-14 md:px-8">
+      <div className="flex items-end justify-between">
+        <div>
+          <p className="text-sm font-bold uppercase tracking-widest text-brand">Explora</p>
+          <h2 className="mt-2 text-2xl font-extrabold text-ink sm:text-3xl">Categorias de Internet</h2>
+        </div>
+        <Link href="/pesquisa" className="hidden items-center gap-1 text-sm font-bold text-brand sm:flex">
+          Ver todos <ArrowRight size={16} />
+        </Link>
+      </div>
+      {categories.length ? (
+        <div className="mt-7 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+          {categories.map((c, i) => {
+            const Icon = categoryIcons[i % categoryIcons.length];
+            return (
+              <Link 
+                key={c.id} 
+                href={`/pesquisa?category=${c.slug}`} 
+                className="rounded-2xl border border-slate-200 p-4 transition hover:-translate-y-0.5 hover:border-teal-300 hover:shadow-soft"
+              >
+                <span className="grid h-11 w-11 place-items-center rounded-xl bg-brand-pale text-brand">
+                  <Icon size={21} />
+                </span>
+                <span className="mt-4 block text-sm font-bold leading-5 text-ink">{c.name}</span>
+              </Link>
+            );
+          })}
+        </div>
+      ) : (
+        <div className="mt-7 rounded-2xl border border-dashed border-slate-300 px-5 py-8 text-center text-sm text-slate-500">
+          {supabase ? "As categorias estarão disponíveis depois de aplicar a migration do Supabase." : "Liga o Supabase para carregar categorias e ofertas reais."}
+        </div>
+      )}
+    </section>
+
+    {/* Ofertas em Destaque */}
+    <section className="bg-slate-50">
+      <div className="mx-auto max-w-7xl px-5 py-14 md:px-8">
+        <div className="flex items-end justify-between">
+          <div>
+            <p className="text-sm font-bold uppercase tracking-widest text-brand">Escolhe com confiança</p>
+            <h2 className="mt-2 text-2xl font-extrabold text-ink sm:text-3xl">Ofertas em destaque</h2>
+          </div>
+          <Link href="/pesquisa" className="hidden items-center gap-1 text-sm font-bold text-brand sm:flex">
+            Pesquisar ofertas <ArrowRight size={16} />
+          </Link>
+        </div>
+        {listings.length ? (
+          <div className="mt-7 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {listings.map((l) => (
+              <Link 
+                key={l.id} 
+                href={`/anuncios/${l.id}`} 
+                className="rounded-2xl border border-slate-200 bg-white p-5 hover:shadow-soft transition-all"
+              >
+                <span className="rounded-full bg-brand-pale px-3 py-1 text-xs font-bold text-brand">
+                  {l.category?.name ?? l.connection_type}
+                </span>
+                <h3 className="mt-4 text-lg font-bold text-ink">{l.title}</h3>
+                <p className="mt-2 text-sm text-slate-500">{l.seller?.business_name}</p>
+                <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-4">
+                  <span className="text-sm text-slate-500">{l.city}, {l.province}</span>
+                  <b className="text-lg text-brand">{Number(l.price_mzn).toLocaleString("pt-MZ")} MT</b>
+                </div>
+              </Link>
+            ))}
+          </div>
+        ) : (
+          <div className="mt-7 rounded-2xl border border-dashed border-slate-300 bg-white px-5 py-9 text-center">
+            <p className="font-semibold text-ink">Ainda não há ofertas publicadas</p>
+            <p className="mt-2 text-sm text-slate-500">Quando vendedores aprovados publicarem anúncios, aparecerão aqui.</p>
+          </div>
+        )}
+      </div>
+    </section>
+
+    {/* Vendedores em Destaque */}
+    <section id="vendedores" className="mx-auto max-w-7xl px-5 py-14 md:px-8">
+      <div className="flex items-end justify-between">
+        <div>
+          <p className="text-sm font-bold uppercase tracking-widest text-brand">Fornecedores verificados</p>
+          <h2 className="mt-2 text-2xl font-extrabold text-ink sm:text-3xl">Vendedores em destaque</h2>
+        </div>
+        <Link href="/pesquisa" className="text-sm font-bold text-brand">
+          Explorar ofertas <ArrowRight size={15} className="inline" />
+        </Link>
+      </div>
+      {sellers.length ? (
+        <div className="mt-7 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {sellers.map((seller) => (
+            <Link 
+              href={`/pesquisa?seller=${seller.id}`} 
+              key={seller.id} 
+              className="block rounded-2xl border border-slate-200 bg-white p-5 transition hover:border-teal-300 hover:shadow-sm"
+            >
+              <div className="flex items-center justify-between gap-3">
+                <h3 className="font-bold text-ink">{seller.business_name}</h3>
+                <span className="shrink-0 rounded-full bg-teal-50 px-2.5 py-1 text-xs font-bold text-brand">
+                  Aprovado
+                </span>
+              </div>
+              <p className="mt-2 flex items-center gap-1 text-sm text-slate-500">
+                <MapPin size={14} /> {seller.province}
+              </p>
+              <p className="mt-3 text-sm text-amber-600">
+                ★ {Number(seller.average_rating).toFixed(1)} <span className="text-slate-500">· {seller.reviews_count} avaliações</span>
+              </p>
+              <button className="mt-4 w-full rounded-lg bg-slate-50 py-2 text-sm font-bold text-slate-700 hover:bg-slate-100 transition-colors">
+                Ver perfil
+              </button>
+            </Link>
+          ))}
+        </div>
+      ) : (
+        <p className="mt-6 rounded-xl border border-dashed p-6 text-sm text-slate-500">
+          Os vendedores aprovados aparecerão aqui.
+        </p>
+      )}
+    </section>
+
+    {/* Como Funciona */}
+    <section id="como-funciona" className="mx-auto grid max-w-7xl gap-10 px-5 py-14 md:px-8 lg:grid-cols-2">
+      <div>
+        <p className="text-sm font-bold uppercase tracking-widest text-brand">Como funciona</p>
+        <h2 className="mt-2 text-3xl font-extrabold text-ink">Três passos para te ligares.</h2>
+        <div className="mt-7 space-y-5">
+          {[
+            ["01", "Crie uma conta", "Registe-se para aceder à plataforma."],
+            ["02", "Explore os vendedores", "Encontre o fornecedor ideal e compare ofertas."],
+            ["03", "Escolha e contacte", "Escolha o produto, contacte o vendedor e faça o pagamento."],
+            ["04", "Acompanhe", "Acompanhe as informações da sua compra e serviços."],
+            ["05", "Beneficie", "Desfrute da conectividade em Moçambique."],
+            ["06", "Suporte", "Obtenha ajuda sempre que precisar."]
+          ].map(([n, t, d]) => (
+            <div key={n} className="flex gap-4">
+              <span className="text-sm font-extrabold text-brand">{n}</span>
+              <div>
+                <h3 className="font-bold text-ink">{t}</h3>
+                <p className="mt-1 text-sm text-slate-500">{d}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div id="contacto" className="rounded-3xl bg-ink p-7 text-white sm:p-9">
+        <span className="grid h-12 w-12 place-items-center rounded-xl bg-white/10 text-teal-200">
+          <Zap size={23} />
+        </span>
+        <h2 className="mt-5 text-2xl font-extrabold">Tens um serviço de Internet?</h2>
+        <p className="mt-3 max-w-md leading-7 text-slate-300">
+          Cria um perfil comercial e apresenta as tuas ofertas a clientes em todo o país. Os anúncios só ficam disponíveis após aprovação.
+        </p>
+        <p className="mt-3 text-sm text-slate-300">
+          Para questões sobre um serviço, contacta o fornecedor através da página da respectiva oferta.
+        </p>
+        <Link href="/vendedor/candidatura" className="mt-6 inline-flex items-center gap-2 rounded-xl bg-white px-5 py-3 font-bold text-ink hover:bg-slate-50 transition-colors">
+          Tornar-me vendedor <ArrowRight size={17} />
+        </Link>
+      </div>
+    </section>
+
+    {/* Vantagens, Planos, FAQ, Suporte (Secções Adicionais) */}
+    <section className="mx-auto max-w-7xl px-5 py-14 md:px-8">
+      <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
+        <div className="rounded-2xl border border-slate-200 bg-white p-6 transition hover:shadow-soft">
+          <span className="grid h-10 w-10 place-items-center rounded-xl bg-brand-pale text-brand">
+            <ShieldCheck size={20} />
+          </span>
+          <h3 className="mt-4 text-lg font-bold text-ink">Segurança</h3>
+          <p className="mt-2 text-sm text-slate-500">Vendedores verificados e transações seguras.</p>
+        </div>
+        <div className="rounded-2xl border border-slate-200 bg-white p-6 transition hover:shadow-soft">
+          <span className="grid h-10 w-10 place-items-center rounded-xl bg-brand-pale text-brand">
+            <Building2 size={20} />
+          </span>
+          <h3 className="mt-4 text-lg font-bold text-ink">Comercial</h3>
+          <p className="mt-2 text-sm text-slate-500">Planos adaptados para vendedores em Moçambique.</p>
+        </div>
+        <div className="rounded-2xl border border-slate-200 bg-white p-6 transition hover:shadow-soft">
+          <span className="grid h-10 w-10 place-items-center rounded-xl bg-brand-pale text-brand">
+            <Radio size={20} />
+          </span>
+          <h3 className="mt-4 text-lg font-bold text-ink">Tecnologia</h3>
+          <p className="mt-2 text-sm text-slate-500">Interface limpa e navegação intuitiva.</p>
+        </div>
+      </div>
+    </section>
+
+    {/* Footer Completo */}
+    <section className="border-t border-slate-100 bg-white">
+      <div className="mx-auto flex max-w-7xl flex-col gap-4 px-5 py-7 text-sm text-slate-500 sm:flex-row sm:items-center sm:justify-between md:px-8">
+        <Link href="/" className="font-extrabold text-ink">mynet</Link>
+        <span>Marketplace de conectividade em Moçambique · Preços em MT</span>
+        <div className="flex gap-4">
+          <Link href="/planos" className="hover:text-brand transition-colors">Planos</Link>
+          <Link href="/login" className="hover:text-brand transition-colors">Entrar</Link>
+          <Link href="/register" className="hover:text-brand transition-colors">Criar conta</Link>
+          <Link href="/#suporte" className="hover:text-brand transition-colors">Suporte</Link>
+        </div>
+      </div>
+    </section>
   </main>;
 }

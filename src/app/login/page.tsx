@@ -1,2 +1,79 @@
-import Link from "next/link";import {AuthForm} from "@/components/auth/AuthForm";
-export default function LoginPage(){return <main className="grid min-h-screen bg-slate-50 lg:grid-cols-2"><section className="hidden flex-col justify-between bg-ink p-12 text-white lg:flex"><Link href="/" className="text-xl font-extrabold">my<span className="text-teal-300">net</span></Link><div className="max-w-md"><p className="font-bold uppercase tracking-widest text-teal-300">A tua conta My Net</p><h1 className="mt-5 text-4xl font-extrabold">Encontra a ligação que procuras.</h1><p className="mt-4 leading-7 text-slate-300">Entra para gerir os teus favoritos, contactos e perfil.</p></div><p className="text-sm text-slate-400">My Net · Moçambique</p></section><section className="flex items-center justify-center px-5 py-12"><div className="w-full max-w-md rounded-2xl border bg-white p-7 shadow-soft sm:p-9"><Link href="/" className="mb-8 inline-block text-lg font-extrabold text-ink lg:hidden">mynet</Link><p className="text-sm font-bold uppercase tracking-wide text-brand">Bem-vindo de volta</p><h2 className="mt-2 text-2xl font-extrabold text-ink">Entrar na tua conta</h2><p className="mb-7 mt-2 text-sm text-slate-600">Usa o email e a palavra-passe da tua conta.</p><AuthForm mode="login"/><Link className="mt-5 block text-center text-sm font-semibold text-brand" href="/recuperar-palavra-passe">Esqueci-me da palavra-passe</Link></div></section></main>}
+import Link from "next/link";
+import { ArrowRight, ShieldCheck, Wifi, MapPin, ChevronDown, Menu, X, UserRound } from "lucide-react";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
+
+export default async function LoginPage() {
+  const supabase = await createSupabaseServerClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (user) return <Link href="/dashboard" className="text-brand">Já estás ligado. Ir para o dashboard</Link>;
+
+  return (
+    <main className="min-h-screen bg-slate-50 flex items-center justify-center p-5">
+      <div className="w-full max-w-md rounded-2xl border bg-white p-8 shadow-soft">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-8">
+          <Link href="/" className="font-extrabold text-ink text-xl">
+            my<span className="text-brand">net</span>
+          </Link>
+          <Link href="/register" className="text-sm font-semibold text-brand hover:underline">
+            Novo utilizador? Criar conta
+          </Link>
+        </div>
+
+        {/* Título */}
+        <div className="text-center mb-8">
+          <p className="text-sm font-bold text-brand uppercase tracking-wider mb-2">Entrar</p>
+          <h1 className="text-2xl font-extrabold text-ink">Bem-vindo de volta</h1>
+          <p className="text-sm text-slate-500 mt-2">Acede ao teu dashboard para continuar.</p>
+        </div>
+
+        {/* Formulário Moderno */}
+        <form action="/auth/signin" method="post" className="space-y-5">
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Email</label>
+            <input 
+              name="email" 
+              type="email" 
+              placeholder="exemplo@mynet.mz" 
+              className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm focus:ring-0 focus:border-brand transition-colors"
+              required
+            />
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Palavra-passe</label>
+            <input 
+              name="password" 
+              type="password" 
+              placeholder="••••••••" 
+              className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm focus:ring-0 focus:border-brand transition-colors"
+              required
+            />
+          </div>
+          <div className="flex justify-between items-center text-xs text-slate-500">
+             <Link href="/recuperar-palavra-passe" className="hover:text-brand transition-colors">Esqueceste-te?</Link>
+          </div>
+
+          <button 
+            type="submit" 
+            className="w-full rounded-xl bg-brand py-3.5 font-bold text-white hover:bg-brand-dark transition-colors mt-2"
+          >
+            Entrar no My Net
+          </button>
+        </form>
+
+        {/* Mensagens de Sucesso/Erro (Simulação Visual) */}
+        <div className="mt-6 rounded-xl bg-teal-50 p-4 flex items-start gap-3 border border-teal-100">
+          <ShieldCheck size={20} className="text-brand shrink-0 mt-0.5" />
+          <p className="text-xs text-teal-700">
+            <strong>Segurança:</strong> O teu acesso é protegido pelas políticas RLS do Supabase.
+          </p>
+        </div>
+
+        {/* Footer */}
+        <div className="mt-8 text-center text-xs text-slate-500">
+          <p>Não tens conta? <Link href="/register" className="text-brand hover:underline">Regista-te agora</Link></p>
+        </div>
+      </div>
+    </main>
+  );
+}
