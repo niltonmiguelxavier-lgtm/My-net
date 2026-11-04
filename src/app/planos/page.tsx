@@ -7,8 +7,7 @@ type PlanRow = {
   name: string;
   price_mzn: number;
   listing_limit: number | null;
-  description: string | null;
-  benefits: string[] | string | null;
+  features: string[] | string | null;
   active: boolean;
 };
 
@@ -19,7 +18,7 @@ export default async function PlanosPage() {
   if (supabase) {
     const { data } = await supabase
       .from("plans")
-      .select("id,name,price_mzn,listing_limit,description,benefits,active")
+      .select("id,name,price_mzn,listing_limit,features,active")
       .order("price_mzn");
     plans = (data as PlanRow[] | null) ?? [];
   }
@@ -78,10 +77,10 @@ export default async function PlanosPage() {
               </div>
               
               <ul className="space-y-3 mb-6">
-                {(Array.isArray(p.benefits)
-                  ? p.benefits
-                  : typeof p.benefits === "string"
-                    ? (p.benefits as unknown as string).split(",")
+                {(Array.isArray(p.features)
+                  ? p.features
+                  : typeof p.features === "string"
+                    ? (p.features as unknown as string).split(",")
                     : []
                 ).map((b, i) => (
                   <li key={i} className="flex items-center gap-2 text-sm text-slate-600">

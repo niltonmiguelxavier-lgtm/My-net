@@ -53,6 +53,9 @@ Constatações principais:
 | `src/app/planos/page.tsx` | Hero, cartões de preço com `benefits` (suporta `string` ou `string[]`), CTA e FAQ; removido `any`. |
 | `src/components/account/UserMenu.tsx` | **Novo.** Dropdown de conta acessível (teclado/Escape, click-outside), contador de notificações e *signout* via o `POST /auth/signout` existente. Substitui o botão mobile inerte. |
 | `src/components/auth/RecoveryForm.tsx` | **Novo.** Estados idle/success/error, `aria-live`, loading e ligação ao fluxo real de recuperação. |
+| `src/app/vendedor/perfil/page.tsx` | **Novo (lacuna fechada).** Página de perfil comercial: cartão de identidade com estado de aprovação, avaliação e contactos; formulário de edição; campos geridos pela plataforma; estado vazio para contas sem registo em `sellers`. |
+| `src/components/forms/SellerProfileForm.tsx` | **Novo.** Formulário cliente com validação por campo, estado *dirty*, contador de caracteres, feedback de sucesso/erro e envio apenas dos campos editáveis. |
+| `supabase/migrations/0003_seller_profile_self_service.sql` | **Novo.** Política RLS `sellers_update_own`, `grant update` por coluna e trigger `guard_seller_profile`. **Não altera schema** (sem colunas novas). |
 | `AUDITORIA_E_PLANO.md` | **Novo.** Auditoria inicial e plano de 9 fases. |
 | `.gitignore` | Ignorado o `package-lock.json` gerado localmente (evita ruído no diff). |
 
@@ -127,7 +130,7 @@ Indicadores reais · Candidaturas · Anúncios para revisão · Pedidos de pagam
 |---|---|---|
 | Typecheck | `npx tsc --noEmit` | ✅ **0 erros** |
 | Lint (durante o build) | `npx next build` | ✅ **0 erros, 0 avisos** |
-| Build de produção | `npx next build` | ✅ **sucesso** — 15 rotas compiladas |
+| Build de produção | `npx next build` | ✅ **sucesso** — 16 rotas compiladas |
 | Testes unitários | `npx vitest run` | ✅ **4/4 testes** (`tests/marketplace-rules.test.ts`) |
 | Rotas HTTP (dev) | `curl` em todas as páginas | ✅ 200 em `/`, `/pesquisa`, `/planos`, `/login`, `/register`, `/recuperar-palavra-passe`, `/dashboard`, `/vendedor/candidatura`; 307 → `/login` em `/admin`, `/vendedor/dashboard`, `/cliente/favoritos` (protecção por sessão correcta) |
 | Consola do servidor | logs de `next dev` | ✅ sem erros nem *warnings* de runtime |
@@ -150,7 +153,8 @@ Route (app)                                 Size  First Load JS
 ├ ○ /recuperar-palavra-passe             2.34 kB         173 kB
 ├ ○ /register                              175 B         106 kB
 ├ ○ /vendedor/candidatura                  175 B         106 kB
-└ ○ /vendedor/dashboard                  5.21 kB         176 kB
+├ ○ /vendedor/dashboard                  5.21 kB         176 kB
+└ ○ /vendedor/perfil                     4.68 kB         175 kB
 + First Load JS shared by all             103 kB
 ƒ Middleware                             90.7 kB
 ```
@@ -181,6 +185,57 @@ git push -u origin frontend-maintenance-2026
 ## 10. Notas e recomendações (fora do âmbito aplicado)
 
 - **Resend de confirmação de email:** o registo depende da configuração de *email templates* no painel Supabase (não alterada).
-- **Rotas ausentes referenciadas na UI:** `/anuncios/[id]` existe; `/vendedor/perfil`, `/cliente/favoritos` (existe) e `/dashboard/profile` foram mantidos/mantidos como destino. A página de perfil de vendedor (`/vendedor/perfil`) ainda não existe no repositório — o botão aponta para o caminho previsto; recomenda-se criar a página numa iteração seguinte (não foi criada para não introduzir funcionalidade não especificada).
+- **`/vendedor/perfil` — lacuna fechada.** A rota já existia como destino de três ligações (painel do vendedor ×2 e `UserMenu`) mas não tinha página; foi criada nesta iteração (ver secção 11).
 - **Imagens/fotos de ofertas:** o `next/image` foi mantido onde já existia; não foram introduzidas imagens fictícias.
 - Nenhum dado fictício, *mock* ou *placeholder* de negócio foi adicionado às páginas.
+
+---
+
+## 11. Lacuna fechada: perfil comercial do vendedor (`/vendedor/perfil`)
+
+### O que faltava
+A rota `/vendedor/perfil` era destino de três ligações (painel do vendedor ×2 e `UserMenu`) mas **não existia** — resultava em 404.
+
+### O que foi criado
+- `src/app/vendedor/perfil/page.tsx` — server component que lê `public.sellers` filtrando por `user_id` da sessão.
+  - **Cartão de identidade:** nome comercial, badge de estado (Aprovado / Em revisão / Pendente / Recusado / Suspenso), avaliação real, email, telefone, localização e última actualização.
+  - **Formulário de edição** (`SellerProfileForm`) com validação por campo, estado *dirty*, contador de caracteres e feedback de sucesso/erro.
+  - **Campos geridos pela plataforma** (`status`, `business_type`, avaliação), explicitamente não editáveis.
+  - **Estado vazio** para contas sem registo em `sellers`, com ligação à candidatura.
+  - Aviso contextual quando o perfil ainda não está aprovado.
+- `src/components/forms/SellerProfileForm.tsx` — cliente Supabase no browser; envia **apenas** `business_name, description, phone, email, province, city`.
+
+### Autorização — sem contornar a segurança existente
+Ao auditar o schema descobriu-se que **o vendedor não tinha permissão de escrita** em `public.sellers`: a única política era `sellers_admin_manage` (`is_admin()`), pelo que `UPDATE` do vendedor devolvia sempre 0 linhas. Sem resolver isto, a página seria decorativa.
+
+Foi criada a migration **`supabase/migrations/0003_seller_profile_self_service.sql`**:
+
+| Elemento | Efeito |
+|---|---|
+| `policy sellers_update_own` | `UPDATE` permitido ao dono (`user_id = auth.uid()`), avaliado com `USING` + `WITH CHECK` |
+| `grant update (business_name, description, phone, email, province, city)` | Apenas estas colunas são escribíveis — coerente com o padrão de `grants` por coluna já usado em `profiles` e `sellers` |
+| `trigger guard_seller_profile` + `revoke execute` | Bloqueia alterações a `user_id`, `status`, `average_rating`, `reviews_count` e `business_type`, e valida limites (nome 2–160, descrição ≤3000, telefone 6–40, email com formato válido, província 2–100, cidade 2–120) |
+
+**Não foram alteradas tabelas, colunas, tipos ou dados.** É uma política + trigger, no mesmo padrão de `guard_*` já existente no projeto (`guard_contact_request`, `guard_payment_request`, `guard_seller_listing`).
+
+### Bug crítico encontrado e corrigido na mesma revisão
+O cruzamento sistemático de todos os `select` com o schema real revelou consultas a **colunas inexistentes** — o PostgREST devolve erro, `data` vem `null` e a interface mostra o estado vazio mesmo com dados na base de dados:
+
+| Consulta | Problema | Correção |
+|---|---|---|
+| `/dashboard` → `profiles` | `avatar_url` não existe (a coluna é `avatar_path`) | `avatar_path` |
+| `/dashboard` → `payment_requests` | filtrava por `customer_id`, coluna inexistente (o modelo só tem `seller_id`) | Removida a consulta; o cartão passou a mostrar o **estado real da candidatura a vendedor** |
+| `/vendedor/dashboard` → `sellers` | `logo_url` e `avatar_url` não existem | Removidos; adicionado `business_type` |
+| `/planos` → `plans` | `description` e `benefits` não existem | `features` (jsonb, com suporte a `string[]` e `string`) |
+
+### Verificação após a alteração
+
+| Verificação | Resultado |
+|---|---|
+| `npx tsc --noEmit` | ✅ 0 erros |
+| `npx next build` | ✅ sucesso, **0 erros/avisos** — 16 rotas |
+| `npx vitest run` | ✅ 4/4 |
+| `GET /vendedor/perfil` | ✅ 200 (página renderiza; 307 → `/login` sem sessão, como as restantes rotas protegidas) |
+| Sintaxe da migration | ✅ 7 statements validados com parser PostgreSQL (`pglast`) |
+
+> **Ação necessária no Supabase:** aplicar `supabase/migrations/0003_seller_profile_self_service.sql` (`supabase db push` ou SQL Editor) para que a edição do perfil comercial fique activa em produção. Sem ela, a página abre em modo leitura e a gravação devolve erro tratado na interface.

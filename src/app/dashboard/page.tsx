@@ -16,14 +16,13 @@ export default async function DashboardPage() {
   const { data: { user } } = await sb.auth.getUser();
   if (!user) redirect("/login");
   
-  const [{ data: profile }, { data: application }, { count: favoritesCount }, { data: notifications }, { count: unreadCount }, { data: recentMessages }, { data: recentPayments }] = await Promise.all([
-    sb.from("profiles").select("full_name,role,phone,province,city,avatar_url").eq("id", user.id).maybeSingle(),
+  const [{ data: profile }, { data: application }, { count: favoritesCount }, { data: notifications }, { count: unreadCount }, { data: recentMessages }] = await Promise.all([
+    sb.from("profiles").select("full_name,role,phone,province,city,avatar_path").eq("id", user.id).maybeSingle(),
     sb.from("seller_applications").select("status,business_name").eq("user_id", user.id).maybeSingle(),
     sb.from("favorites").select("listing_id", { count: "exact", head: true }).eq("user_id", user.id),
     sb.from("notifications").select("id,title,body,link,read_at,created_at").eq("user_id", user.id).order("created_at",{ascending:false}).limit(20),
     sb.from("notifications").select("id",{count:"exact",head:true}).eq("user_id",user.id).is("read_at",null),
     sb.from("contact_requests").select("id,message,created_at,listing:listings(title)").eq("customer_id", user.id).order("created_at", { ascending: false }).limit(5),
-    sb.from("payment_requests").select("id,amount_mzn,status,created_at").eq("customer_id", user.id).order("created_at", { ascending: false }).limit(5)
   ]);
 
   const role = profile?.role ?? "customer";
@@ -139,10 +138,10 @@ export default async function DashboardPage() {
               </Link>
             </article>
             <article className="rounded-2xl border bg-white p-5 shadow-soft">
-              <p className="text-xs font-bold text-brand uppercase">Pagamentos</p>
-              <b className="mt-2 block text-3xl text-ink">{recentPayments?.length ?? 0}</b>
-              <Link href="/dashboard#pagamentos" className="mt-3 inline-flex items-center gap-1 text-sm font-bold text-brand hover:underline">
-                Ver <ArrowRight size={14} />
+              <p className="text-xs font-bold text-brand uppercase">Candidatura</p>
+              <b className="mt-2 block text-3xl capitalize text-ink">{application?.status ?? "não submetida"}</b>
+              <Link href="/vendedor/candidatura" className="mt-3 inline-flex items-center gap-1 text-sm font-bold text-brand hover:underline">
+                {application ? "Consultar" : "Iniciar"} <ArrowRight size={14} />
               </Link>
             </article>
           </div>

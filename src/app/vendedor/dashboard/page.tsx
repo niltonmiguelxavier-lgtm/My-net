@@ -87,7 +87,7 @@ export default async function SellerDashboard() {
   const [{ data: seller }, { data: cats }] = await Promise.all([
     sb
       .from("sellers")
-      .select("id,business_name,status,average_rating,reviews_count,description,phone,email,province,city,logo_url,avatar_url")
+      .select("id,business_name,status,average_rating,reviews_count,description,phone,email,province,city,business_type")
       .eq("user_id", user.id)
       .maybeSingle(),
     sb.from("categories").select("id,name").eq("active", true).order("sort_order"),
