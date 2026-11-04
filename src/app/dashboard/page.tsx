@@ -1,16 +1,14 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ArrowRight, Bell, Bookmark, CircleHelp, Compass, CreditCard, FileCheck2, Heart, Settings, ShieldCheck, Store, UserRound, Search, MessageSquare, Star, Zap } from "lucide-react";
+import { ArrowRight, Bell, CircleHelp, Compass, CreditCard, Heart, Settings, Store, UserRound, Search, MessageSquare, Star, Zap, Wifi, Radio } from "lucide-react";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { BottomNav } from "@/components/account/BottomNav";
 import { ProfileEditor, NotificationList } from "@/components/account/AccountTools";
+import { UserMenu } from "@/components/account/UserMenu";
 
-const customerLinks = [
-  { href: "/cliente/favoritos", label: "Favoritos", detail: "Serviços que guardaste", Icon: Heart },
-  { href: "/pesquisa", label: "Explorar ofertas", detail: "Compara serviços disponíveis", Icon: Compass },
-  { href: "/vendedor/candidatura", label: "Candidatura de vendedor", detail: "Consulta ou inicia uma candidatura", Icon: FileCheck2 },
-  { href: "/planos", label: "Planos", detail: "Planos e preços para vendedores", Icon: CreditCard },
-];
+function first<T>(value: T | T[] | null): T | null {
+  return Array.isArray(value) ? value[0] ?? null : value;
+}
 
 export default async function DashboardPage() {
   const sb = await createSupabaseServerClient();
@@ -50,10 +48,8 @@ export default async function DashboardPage() {
               </button>
             </form>
           </nav>
-          {/* Mobile Toggle */}
-          <div className="sm:hidden">
-             <button className="text-slate-600 hover:text-brand transition-colors"><Menu size={24}/></button>
-          </div>
+          {/* User menu (client) */}
+          <UserMenu fullName={profile?.full_name ?? "Cliente"} unread={unreadCount ?? 0} />
         </div>
       </header>
 
@@ -198,11 +194,11 @@ export default async function DashboardPage() {
           <section className="mt-8">
              <h2 className="text-lg font-extrabold text-ink mb-4">Actividade recente</h2>
              <div className="space-y-4">
-                {recentMessages?.length > 0 ? recentMessages.map(m => (
+                {(recentMessages?.length ?? 0) > 0 ? (recentMessages ?? []).map(m => (
                    <div key={m.id} className="flex items-start gap-3 p-3 rounded-xl border border-slate-100 bg-white/50 hover:bg-white transition-colors">
                       <div className="w-8 h-8 rounded-full bg-teal-100 flex items-center justify-center text-teal-700 text-xs font-bold">M</div>
                       <div>
-                         <p className="text-sm font-bold text-ink">Mensagem de {m.listing?.title || "Vendedor"}</p>
+                         <p className="text-sm font-bold text-ink">Mensagem de {first(m.listing)?.title || "Vendedor"}</p>
                          <p className="text-xs text-slate-500 mt-1">{m.message.substring(0, 50)}...</p>
                          <p className="text-[10px] text-slate-400 mt-1">{new Date(m.created_at).toLocaleDateString("pt-MZ")}</p>
                       </div>
@@ -222,8 +218,7 @@ export default async function DashboardPage() {
                 full_name: profile?.full_name ?? "",
                 phone: profile?.phone ?? null,
                 province: profile?.province ?? null,
-                city: profile?.city ?? null,
-                avatar_url: profile?.avatar_url ?? null
+                city: profile?.city ?? null
              }} />
           </section>
 

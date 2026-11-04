@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Wifi, Radio, Router, Satellite, Building2, Search, ShieldCheck, MapPin, Zap, Menu, X, ChevronDown } from "lucide-react";
+import { ArrowRight, Wifi, Radio, Router, Satellite, Building2, Search, ShieldCheck, MapPin, Zap, Menu } from "lucide-react";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 const categoryIcons = [Wifi, Router, Zap, Radio, Satellite, Building2];
@@ -346,18 +346,78 @@ export default async function HomePage() {
       </div>
     </section>
 
-    {/* Footer Completo */}
-    <section className="border-t border-slate-100 bg-white">
-      <div className="mx-auto flex max-w-7xl flex-col gap-4 px-5 py-7 text-sm text-slate-500 sm:flex-row sm:items-center sm:justify-between md:px-8">
-        <Link href="/" className="font-extrabold text-ink">mynet</Link>
-        <span>Marketplace de conectividade em Moçambique · Preços em MT</span>
-        <div className="flex gap-4">
-          <Link href="/planos" className="hover:text-brand transition-colors">Planos</Link>
-          <Link href="/login" className="hover:text-brand transition-colors">Entrar</Link>
-          <Link href="/register" className="hover:text-brand transition-colors">Criar conta</Link>
-          <Link href="/#suporte" className="hover:text-brand transition-colors">Suporte</Link>
+    {/* Suporte */}
+    <section id="suporte" className="scroll-mt-24 border-t border-slate-100 bg-[#f2f8f6]">
+      <div className="mx-auto grid max-w-7xl gap-6 px-5 py-14 md:px-8 lg:grid-cols-[1.2fr_1fr]">
+        <div>
+          <p className="text-xs font-bold uppercase tracking-wider text-brand">Suporte</p>
+          <h2 className="mt-2 text-2xl font-extrabold text-ink sm:text-3xl">Precisas de ajuda?</h2>
+          <p className="mt-2 max-w-xl text-sm leading-relaxed text-slate-600">
+            Esclarece dúvidas sobre a conta, candidaturas de vendedor, planos ou o processo de confirmação de pagamentos.
+            A equipa responde através dos contactos oficiais da plataforma.
+          </p>
+          <div className="mt-5 flex flex-wrap gap-3">
+            <Link href="/planos" className="inline-flex items-center gap-2 rounded-xl bg-brand px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-brand-dark">
+              Ver planos <ArrowRight size={16} />
+            </Link>
+            <Link href="/login" className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-ink transition-colors hover:border-teal-300 hover:text-brand">
+              Entrar na conta
+            </Link>
+          </div>
+        </div>
+        <div className="space-y-3">
+          {[
+            ["Conta e acesso", "Registo, recuperação de palavra-passe e actualização de perfil."],
+            ["Vendedores", "Candidatura, aprovação e gestão de ofertas no painel do vendedor."],
+            ["Pagamentos", "A confirmação de pagamentos é feita manualmente pela equipa My Net."],
+          ].map(([title, detail]) => (
+            <article key={title} className="rounded-2xl border border-slate-200 bg-white p-4">
+              <p className="text-sm font-bold text-ink">{title}</p>
+              <p className="mt-1 text-xs leading-5 text-slate-500">{detail}</p>
+            </article>
+          ))}
         </div>
       </div>
     </section>
+
+    {/* Footer Completo */}
+    <footer className="border-t border-slate-100 bg-white">
+      <div className="mx-auto grid max-w-7xl gap-8 px-5 py-12 md:grid-cols-4 md:px-8">
+        <div className="md:col-span-2">
+          <Link href="/" className="flex items-center gap-2.5">
+            <span className="grid h-9 w-9 place-items-center rounded-xl bg-brand text-white"><Wifi size={18} /></span>
+            <span className="text-lg font-extrabold tracking-tight text-ink">my<span className="text-brand">net</span></span>
+          </Link>
+          <p className="mt-3 max-w-md text-sm leading-relaxed text-slate-500">
+            Marketplace de conectividade em Moçambique. Liga clientes a vendedores de internet aprovados, com preços
+            transparentes em meticais.
+          </p>
+        </div>
+        <div>
+          <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Plataforma</p>
+          <ul className="mt-3 space-y-2 text-sm text-slate-600">
+            <li><Link href="/pesquisa" className="transition-colors hover:text-brand">Explorar ofertas</Link></li>
+            <li><Link href="/#categorias" className="transition-colors hover:text-brand">Categorias</Link></li>
+            <li><Link href="/planos" className="transition-colors hover:text-brand">Planos</Link></li>
+            <li><Link href="/#como-funciona" className="transition-colors hover:text-brand">Como funciona</Link></li>
+          </ul>
+        </div>
+        <div>
+          <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Conta</p>
+          <ul className="mt-3 space-y-2 text-sm text-slate-600">
+            <li><Link href="/login" className="transition-colors hover:text-brand">Entrar</Link></li>
+            <li><Link href="/register" className="transition-colors hover:text-brand">Criar conta</Link></li>
+            <li><Link href="/vendedor/candidatura" className="transition-colors hover:text-brand">Ser vendedor</Link></li>
+            <li><Link href="/#suporte" className="transition-colors hover:text-brand">Suporte</Link></li>
+          </ul>
+        </div>
+      </div>
+      <div className="border-t border-slate-100">
+        <div className="mx-auto flex max-w-7xl flex-col gap-2 px-5 py-5 text-xs text-slate-400 sm:flex-row sm:items-center sm:justify-between md:px-8">
+          <span>© {new Date().getFullYear()} My Net · Moçambique</span>
+          <span>Preços apresentados em meticais (MT)</span>
+        </div>
+      </div>
+    </footer>
   </main>;
 }

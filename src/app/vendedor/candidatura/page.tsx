@@ -1,9 +1,10 @@
 import Link from "next/link";
-import { ArrowRight, ShieldCheck, Wifi, MapPin, ChevronDown, Menu, X, UserRound, Building2, Star } from "lucide-react";
+import { ArrowRight, ShieldCheck, Building2 } from "lucide-react";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export default async function CandidaturaPage() {
-  const supabase = await createSupabaseServerClient();
+  const sb = await createSupabaseServerClient();
+  if (!sb) return <Link href="/login" className="text-brand">Configura o Supabase para iniciar a candidatura</Link>;
   const { data: { user } } = await sb.auth.getUser();
   if (!user) return <Link href="/login" className="text-brand">Entra para iniciar a candidatura</Link>;
 
@@ -13,6 +14,7 @@ export default async function CandidaturaPage() {
   ]);
 
   const role = profile?.role ?? "customer";
+  const isSeller = role === "seller";
   
   return (
     <main className="min-h-screen bg-slate-50">
@@ -38,6 +40,14 @@ export default async function CandidaturaPage() {
       </header>
 
       {/* Hero Section */}
+      {isSeller ? (
+        <div className="mx-auto max-w-7xl px-5 pt-24">
+          <p className="rounded-xl bg-amber-50 p-4 text-sm text-amber-900">
+            A tua conta já tem acesso de vendedor. Podes gerir o negócio no{" "}
+            <Link href="/vendedor/dashboard" className="font-bold underline">painel de vendedor</Link>.
+          </p>
+        </div>
+      ) : null}
       <section className="pt-24 pb-16 bg-[#f2f8f6]">
         <div className="mx-auto max-w-7xl px-5 text-center">
           <p className="text-sm font-bold text-brand uppercase tracking-wider mb-2">Tornar-se Vendedor</p>
@@ -141,7 +151,7 @@ export default async function CandidaturaPage() {
                   name="description" 
                   placeholder="Descreve os teus serviços e tecnologias..." 
                   className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm focus:ring-0 focus:border-brand transition-colors"
-                  rows="4"
+                  rows={4}
                   required
                 />
               </div>

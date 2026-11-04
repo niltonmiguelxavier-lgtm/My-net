@@ -1,10 +1,11 @@
 import Link from "next/link";
-import { ArrowRight, ShieldCheck, Wifi, MapPin, ChevronDown, Menu, X, UserRound } from "lucide-react";
+import { ShieldCheck } from "lucide-react";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { RecoveryForm } from "@/components/auth/RecoveryForm";
 
 export default async function RecuperarPage() {
   const supabase = await createSupabaseServerClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const { data: { user } } = supabase ? await supabase.auth.getUser() : { data: { user: null } };
   if (user) return <Link href="/dashboard" className="text-brand">Já estás ligado. Ir para o dashboard</Link>;
 
   return (
@@ -27,26 +28,7 @@ export default async function RecuperarPage() {
           <p className="text-sm text-slate-500 mt-2">Introduz o teu email para receber instruções.</p>
         </div>
 
-        {/* Formulário Moderno */}
-        <form action="/auth/recover" method="post" className="space-y-5">
-          <div className="space-y-1.5">
-            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Email</label>
-            <input 
-              name="email" 
-              type="email" 
-              placeholder="exemplo@mynet.mz" 
-              className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm focus:ring-0 focus:border-brand transition-colors"
-              required
-            />
-          </div>
-
-          <button 
-            type="submit" 
-            className="w-full rounded-xl bg-brand py-3.5 font-bold text-white hover:bg-brand-dark transition-colors mt-2"
-          >
-            Enviar instruções
-          </button>
-        </form>
+        <RecoveryForm />
 
         {/* Mensagem de Sucesso/Erro */}
         <div className="mt-6 rounded-xl bg-teal-50 p-4 flex items-start gap-3 border border-teal-100">

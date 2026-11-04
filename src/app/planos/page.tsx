@@ -1,14 +1,27 @@
 import Link from "next/link";
-import { ArrowRight, Wifi, ShieldCheck, MapPin, Search, ChevronDown, Menu, X, CreditCard, Building2, Star } from "lucide-react";
+import { ShieldCheck, Building2, Wifi } from "lucide-react";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+
+type PlanRow = {
+  id: string;
+  name: string;
+  price_mzn: number;
+  listing_limit: number | null;
+  description: string | null;
+  benefits: string[] | string | null;
+  active: boolean;
+};
 
 export default async function PlanosPage() {
   const supabase = await createSupabaseServerClient();
-  let plans: any[] = [];
-  
+  let plans: PlanRow[] = [];
+
   if (supabase) {
-    const { data } = await supabase.from("plans").select("id,name,price_mzn,listing_limit,description,benefits,active").order("price_mzn");
-    plans = data ?? [];
+    const { data } = await supabase
+      .from("plans")
+      .select("id,name,price_mzn,listing_limit,description,benefits,active")
+      .order("price_mzn");
+    plans = (data as PlanRow[] | null) ?? [];
   }
 
   return (
@@ -65,9 +78,14 @@ export default async function PlanosPage() {
               </div>
               
               <ul className="space-y-3 mb-6">
-                {p.benefits?.split(",").map((b: string, i: number) => (
+                {(Array.isArray(p.benefits)
+                  ? p.benefits
+                  : typeof p.benefits === "string"
+                    ? (p.benefits as unknown as string).split(",")
+                    : []
+                ).map((b, i) => (
                   <li key={i} className="flex items-center gap-2 text-sm text-slate-600">
-                    <Wifi size={16} className="text-brand shrink-0" /> {b.trim()}
+                    <Wifi size={16} className="text-brand shrink-0" /> {String(b).trim()}
                   </li>
                 ))}
                 {p.listing_limit && (

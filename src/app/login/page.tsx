@@ -1,10 +1,10 @@
 import Link from "next/link";
-import { ArrowRight, ShieldCheck, Wifi, MapPin, ChevronDown, Menu, X, UserRound } from "lucide-react";
+import { ShieldCheck } from "lucide-react";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export default async function LoginPage() {
   const supabase = await createSupabaseServerClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const { data: { user } } = supabase ? await supabase.auth.getUser() : { data: { user: null } };
   if (user) return <Link href="/dashboard" className="text-brand">Já estás ligado. Ir para o dashboard</Link>;
 
   return (
