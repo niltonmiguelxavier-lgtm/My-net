@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { ShieldCheck } from "lucide-react";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { RecoveryForm } from "@/components/auth/RecoveryForm";
@@ -6,7 +7,7 @@ import { RecoveryForm } from "@/components/auth/RecoveryForm";
 export default async function RecuperarPage() {
   const supabase = await createSupabaseServerClient();
   const { data: { user } } = supabase ? await supabase.auth.getUser() : { data: { user: null } };
-  if (user) return <Link href="/dashboard" className="text-brand">Já estás ligado. Ir para o dashboard</Link>;
+  if (user) redirect("/dashboard");
 
   return (
     <main className="min-h-screen bg-slate-50 flex items-center justify-center p-5">

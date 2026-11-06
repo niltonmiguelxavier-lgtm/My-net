@@ -1,11 +1,15 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { ShieldCheck } from "lucide-react";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { AuthForm } from "@/components/auth/AuthForm";
 
 export default async function LoginPage() {
   const supabase = await createSupabaseServerClient();
   const { data: { user } } = supabase ? await supabase.auth.getUser() : { data: { user: null } };
-  if (user) return <Link href="/dashboard" className="text-brand">Já estás ligado. Ir para o dashboard</Link>;
+  // Já autenticado: evita mostrar o formulário de login (requisito: sem homepage
+  // pública nem ecrãs de auth após login).
+  if (user) redirect("/dashboard");
 
   return (
     <main className="min-h-screen bg-slate-50 flex items-center justify-center p-5">
@@ -28,38 +32,7 @@ export default async function LoginPage() {
         </div>
 
         {/* Formulário Moderno */}
-        <form action="/auth/signin" method="post" className="space-y-5">
-          <div className="space-y-1.5">
-            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Email</label>
-            <input 
-              name="email" 
-              type="email" 
-              placeholder="exemplo@mynet.mz" 
-              className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm focus:ring-0 focus:border-brand transition-colors"
-              required
-            />
-          </div>
-          <div className="space-y-1.5">
-            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Palavra-passe</label>
-            <input 
-              name="password" 
-              type="password" 
-              placeholder="••••••••" 
-              className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm focus:ring-0 focus:border-brand transition-colors"
-              required
-            />
-          </div>
-          <div className="flex justify-between items-center text-xs text-slate-500">
-             <Link href="/recuperar-palavra-passe" className="hover:text-brand transition-colors">Esqueceste-te?</Link>
-          </div>
-
-          <button 
-            type="submit" 
-            className="w-full rounded-xl bg-brand py-3.5 font-bold text-white hover:bg-brand-dark transition-colors mt-2"
-          >
-            Entrar no My Net
-          </button>
-        </form>
+        <AuthForm mode="login" />
 
         {/* Mensagens de Sucesso/Erro (Simulação Visual) */}
         <div className="mt-6 rounded-xl bg-teal-50 p-4 flex items-start gap-3 border border-teal-100">
