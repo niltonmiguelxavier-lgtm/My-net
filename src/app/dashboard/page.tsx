@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ArrowRight, Bell, CircleHelp, Compass, CreditCard, Heart, Settings, Store, UserRound, Search, MessageSquare, Star, Zap, Wifi, Radio } from "lucide-react";
+import { ArrowRight, Bell, CircleHelp, Compass, Heart, Settings, Store, UserRound, Search, MessageSquare, Zap, Wifi, Radio } from "lucide-react";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { BottomNav } from "@/components/account/BottomNav";
 import { ProfileEditor, NotificationList } from "@/components/account/AccountTools";
@@ -32,23 +32,20 @@ export default async function DashboardPage() {
   return (
     <main className="min-h-screen bg-slate-50 pb-20 md:pb-0">
       {/* Header Moderno */}
-      <header className="border-b bg-white/90 backdrop-blur-md">
+      <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur-md">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-4">
           <Link href="/" className="text-xl font-extrabold text-ink">
             my<span className="text-brand">net</span>
           </Link>
-          <nav className="flex items-center gap-4">
-            <Link href="/pesquisa" className="hidden text-sm font-semibold text-slate-600 sm:block hover:text-brand transition-colors">
+          <div className="flex items-center gap-2">
+            <Link
+              href="/pesquisa"
+              className="hidden rounded-lg px-3 py-2 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-50 hover:text-brand sm:block"
+            >
               Explorar
             </Link>
-            <form action="/auth/signout" method="post">
-              <button className="text-sm font-semibold text-slate-600 hover:text-brand transition-colors">
-                Terminar sessão
-              </button>
-            </form>
-          </nav>
-          {/* User menu (client) */}
-          <UserMenu fullName={profile?.full_name ?? "Cliente"} unread={unreadCount ?? 0} />
+            <UserMenu fullName={profile?.full_name ?? "Cliente"} unread={unreadCount ?? 0} />
+          </div>
         </div>
       </header>
 
@@ -56,7 +53,7 @@ export default async function DashboardPage() {
       <div className="mx-auto grid max-w-7xl gap-8 px-5 py-9 lg:grid-cols-[280px_1fr]">
         
         {/* Sidebar Completa */}
-        <aside className="h-fit rounded-2xl border bg-white p-4 shadow-soft">
+        <aside className="hidden h-fit rounded-2xl border border-slate-200 bg-white p-4 shadow-soft lg:block">
           <div className="flex items-center gap-3 px-3 py-2 mb-4">
              <div className="w-10 h-10 rounded-full bg-brand-pale flex items-center justify-center text-brand font-bold">
                 {profile?.full_name?.charAt(0) || "C"}
@@ -67,38 +64,36 @@ export default async function DashboardPage() {
              </div>
           </div>
           
-          <nav className="grid gap-1">
+          <nav className="grid gap-0.5">
             {[
-              { href: "/dashboard", label: "Início", Icon: UserRound, detail: "Dashboard principal" },
-              { href: "/cliente/favoritos", label: "Favoritos", Icon: Heart, detail: "Vendedores guardados" },
-              { href: "/pesquisa", label: "Explorar", Icon: Compass, detail: "Encontrar vendedores" },
-              { href: "/pesquisa?category=all", label: "Categorias", Icon: Zap, detail: "Serviços e produtos" },
-              { href: "/pesquisa?featured=true", label: "Destaque", Icon: Star, detail: "Vendedores em destaque" },
-              { href: "/dashboard#mensagens", label: "Mensagens", Icon: MessageSquare, detail: "Conversas com vendedores" },
-              { href: "/dashboard#notificacoes", label: "Notificações", Icon: Bell, detail: "Actualizações" },
-              { href: "/dashboard#pagamentos", label: "Pagamentos", Icon: CreditCard, detail: "Histórico" },
-              { href: "/dashboard#perfil", label: "Perfil", Icon: Settings, detail: "Informações pessoais" },
-              { href: "/dashboard#suporte", label: "Suporte", Icon: CircleHelp, detail: "Ajuda" }
-            ].map(({ href, label, Icon, detail }) => (
-              <Link 
-                key={label} 
-                href={href} 
-                className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-slate-600 hover:bg-teal-50 hover:text-brand transition-all"
+              { href: "/dashboard", label: "Início", Icon: UserRound },
+              { href: "/cliente/favoritos", label: "Favoritos", Icon: Heart },
+              { href: "/pesquisa", label: "Explorar", Icon: Compass },
+              { href: "/dashboard#mensagens", label: "Mensagens", Icon: MessageSquare },
+              { href: "/dashboard#notificacoes", label: "Notificações", Icon: Bell, badge: unreadCount ?? 0 },
+              { href: "/dashboard#perfil", label: "Perfil", Icon: Settings },
+              { href: "/dashboard#suporte", label: "Ajuda", Icon: CircleHelp }
+            ].map(({ href, label, Icon, badge }) => (
+              <Link
+                key={label}
+                href={href}
+                className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-slate-600 transition-colors hover:bg-teal-50 hover:text-brand"
               >
-                <Icon size={18} />
-                <div>
-                  <span className="block">{label}</span>
-                  <span className="text-[10px] text-slate-400">{detail}</span>
-                </div>
+                <Icon size={17} />
+                <span>{label}</span>
+                {badge ? (
+                  <span className="ml-auto rounded-full bg-brand px-2 py-0.5 text-[10px] font-bold text-white">{badge}</span>
+                ) : null}
               </Link>
             ))}
           </nav>
-          
-          <div className="mt-4 border-t pt-4">
-            <Link href="/dashboard#notificacoes" className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-slate-600 hover:bg-teal-50 hover:text-brand transition-all">
-              <Bell size={18} />
-              Notificações
-              {unreadCount ? <span className="ml-auto rounded-full bg-brand px-2 py-0.5 text-xs text-white">{unreadCount}</span> : null}
+
+          <div className="mt-3 border-t border-slate-100 pt-3">
+            <Link
+              href="/vendedor/candidatura"
+              className="block rounded-xl bg-brand px-3 py-2.5 text-center text-xs font-bold text-white transition-colors hover:bg-brand-dark"
+            >
+              Ser vendedor
             </Link>
           </div>
         </aside>
@@ -106,44 +101,39 @@ export default async function DashboardPage() {
         {/* Área Principal */}
         <section>
           {/* Saudação e Resumo */}
-          <div className="mb-8">
-             <p className="text-sm font-bold text-brand uppercase tracking-wider">PAINEL DO CLIENTE</p>
-             <h1 className="mt-2 text-3xl font-extrabold text-ink">
-                Olá{profile?.full_name ? `, ${profile.full_name}` : ""}! Bem-vindo ao My Net.
-             </h1>
-             <p className="mt-2 text-slate-600">Gere a tua conta, descobre vendedores e gere as tuas compras.</p>
+          <div className="mb-6">
+            <p className="text-[11px] font-bold uppercase tracking-wider text-brand">Painel do cliente</p>
+            <h1 className="mt-1.5 text-2xl font-extrabold leading-tight text-ink sm:text-3xl">
+              Olá{profile?.full_name ? `, ${profile.full_name.split(" ")[0]}` : ""} 👋
+            </h1>
+            <p className="mt-1 text-sm text-slate-600">Descobre fornecedores de internet perto de ti.</p>
           </div>
 
-          {/* Cartões de Resumo */}
-          <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <article className="rounded-2xl border bg-white p-5 shadow-soft">
-              <p className="text-xs font-bold text-brand uppercase">Favoritos</p>
-              <b className="mt-2 block text-3xl text-ink">{favoritesCount ?? 0}</b>
-              <Link href="/cliente/favoritos" className="mt-3 inline-flex items-center gap-1 text-sm font-bold text-brand hover:underline">
-                Ver <ArrowRight size={14} />
+          {/* Resumo rápido */}
+          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+            {[
+              { label: "Favoritos", value: favoritesCount ?? 0, href: "/cliente/favoritos", cta: "Ver" },
+              { label: "Mensagens", value: recentMessages?.length ?? 0, href: "/dashboard#mensagens", cta: "Ver" },
+              { label: "Notificações", value: unreadCount ?? 0, href: "/dashboard#notificacoes", cta: "Ver" },
+              {
+                label: "Candidatura",
+                value: application ? String(application.status) : "—",
+                href: "/vendedor/candidatura",
+                cta: application ? "Consultar" : "Iniciar"
+              }
+            ].map(({ label, value, href, cta }) => (
+              <Link
+                key={label}
+                href={href}
+                className="group rounded-2xl border border-slate-200 bg-white p-4 shadow-soft transition-all hover:-translate-y-0.5 hover:border-teal-300 hover:shadow-md"
+              >
+                <p className="text-[10px] font-bold uppercase tracking-wider text-brand">{label}</p>
+                <b className="mt-1 block truncate text-2xl font-extrabold capitalize text-ink">{value}</b>
+                <span className="mt-2 inline-flex items-center gap-0.5 text-xs font-bold text-brand">
+                  {cta} <ArrowRight size={12} className="transition-transform group-hover:translate-x-0.5" />
+                </span>
               </Link>
-            </article>
-            <article className="rounded-2xl border bg-white p-5 shadow-soft">
-              <p className="text-xs font-bold text-brand uppercase">Mensagens</p>
-              <b className="mt-2 block text-3xl text-ink">{recentMessages?.length ?? 0}</b>
-              <Link href="/dashboard#mensagens" className="mt-3 inline-flex items-center gap-1 text-sm font-bold text-brand hover:underline">
-                Ver <ArrowRight size={14} />
-              </Link>
-            </article>
-            <article className="rounded-2xl border bg-white p-5 shadow-soft">
-              <p className="text-xs font-bold text-brand uppercase">Notificações</p>
-              <b className="mt-2 block text-3xl text-ink">{unreadCount ?? 0}</b>
-              <Link href="/dashboard#notificacoes" className="mt-3 inline-flex items-center gap-1 text-sm font-bold text-brand hover:underline">
-                Ver <ArrowRight size={14} />
-              </Link>
-            </article>
-            <article className="rounded-2xl border bg-white p-5 shadow-soft">
-              <p className="text-xs font-bold text-brand uppercase">Candidatura</p>
-              <b className="mt-2 block text-3xl capitalize text-ink">{application?.status ?? "não submetida"}</b>
-              <Link href="/vendedor/candidatura" className="mt-3 inline-flex items-center gap-1 text-sm font-bold text-brand hover:underline">
-                {application ? "Consultar" : "Iniciar"} <ArrowRight size={14} />
-              </Link>
-            </article>
+            ))}
           </div>
 
           {/* Secção de Descoberta */}
