@@ -1,6 +1,153 @@
 import Link from "next/link";
-import { Check } from "lucide-react";
+import { ShieldCheck, Building2, Wifi } from "lucide-react";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { PlanRequestForm } from "@/components/forms/PlanRequestForm";
-type Plan = { id: string; name: string; price_mzn: number; listing_limit: number | null; features: string[] | null };
-export default async function PlansPage(){const sb=await createSupabaseServerClient();let plans:Plan[]=[];let instructions="";if(sb){const[{data},{data:setting}]=await Promise.all([sb.from("plans").select("id,name,price_mzn,listing_limit,features").eq("active",true).order("price_mzn"),sb.from("platform_settings").select("value").eq("key","public_payment_instructions").maybeSingle()]);plans=(data??[]) as Plan[];instructions=typeof setting?.value==="string"?setting.value:"";}return <main className="min-h-screen bg-slate-50"><header className="bg-white"><div className="mx-auto flex max-w-7xl justify-between px-5 py-5"><Link href="/" className="text-xl font-extrabold text-ink">my<span className="text-brand">net</span></Link><Link href="/login" className="text-sm font-bold text-brand">Entrar</Link></div></header><section className="mx-auto max-w-6xl px-5 py-14 text-center"><p className="font-bold uppercase tracking-widest text-brand">Para vendedores</p><h1 className="mt-3 text-4xl font-extrabold text-ink">Um plano para cada etapa.</h1><p className="mx-auto mt-4 max-w-xl text-slate-600">Preços mensais em Meticais. Os planos pagos só são activados depois de confirmação do pagamento por um administrador.</p>{!plans.length?<p className="mt-10 rounded-xl border border-dashed bg-white p-8 text-sm text-slate-500">Os planos serão apresentados depois de aplicar a migration e ligar o Supabase.</p>:<div className="mt-10 grid gap-5 text-left md:grid-cols-3">{plans.map(p=><article key={p.id} className="rounded-2xl border bg-white p-7 shadow-soft"><h2 className="text-xl font-extrabold text-ink">{p.name}</h2><p className="mt-4 text-3xl font-extrabold text-brand">{Number(p.price_mzn).toLocaleString("pt-MZ")} <span className="text-sm font-semibold">MT/mês</span></p><p className="mt-2 text-sm text-slate-500">{p.listing_limit===null?"Anúncios ilimitados":`Até ${p.listing_limit} anúncios activos`}</p><ul className="mt-6 space-y-3">{(p.features??[]).map((f:string)=><li key={f} className="flex gap-2 text-sm text-slate-600"><Check size={17} className="shrink-0 text-brand"/>{f}</li>)}</ul><PlanRequestForm planId={p.id} price={Number(p.price_mzn)} instructions={instructions}/></article>)}</div>}<Link href="/" className="mt-8 inline-block text-sm font-semibold text-brand">Voltar ao início</Link></section></main>}
+
+type PlanRow = {
+  id: string;
+  name: string;
+  price_mzn: number;
+  listing_limit: number | null;
+  features: string[] | string | null;
+  active: boolean;
+};
+
+export default async function PlanosPage() {
+  const supabase = await createSupabaseServerClient();
+  let plans: PlanRow[] = [];
+
+  if (supabase) {
+    const { data } = await supabase
+      .from("plans")
+      .select("id,name,price_mzn,listing_limit,features,active")
+      .order("price_mzn");
+    plans = (data as PlanRow[] | null) ?? [];
+  }
+
+  return (
+    <main className="min-h-screen bg-slate-50">
+      {/* Header Moderno */}
+      <header className="border-b bg-white/90 backdrop-blur-md fixed top-0 w-full z-50">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4">
+          <Link href="/" className="text-xl font-extrabold text-ink">
+            my<span className="text-brand">net</span>
+          </Link>
+          <nav className="hidden items-center gap-4 sm:flex">
+            <Link href="/" className="text-sm font-semibold text-slate-600 hover:text-brand transition-colors">Início</Link>
+            <Link href="/pesquisa" className="text-sm font-semibold text-slate-600 hover:text-brand transition-colors">Explorar</Link>
+            <Link href="/login" className="rounded-lg px-3 py-2 text-sm font-semibold text-ink hover:bg-slate-50 transition-colors">Entrar</Link>
+            <Link href="/register" className="rounded-lg bg-brand px-4 py-2.5 text-sm font-bold text-white hover:bg-brand-dark transition-colors">Criar conta</Link>
+          </nav>
+        </div>
+      </header>
+
+      {/* Hero Section */}
+      <section className="pt-24 pb-16 bg-[#f2f8f6]">
+        <div className="mx-auto max-w-7xl px-5 text-center">
+          <p className="text-sm font-bold text-brand uppercase tracking-wider mb-2">Planos para Vendedores</p>
+          <h1 className="text-4xl font-extrabold text-ink sm:text-5xl mb-4">Escolhe o plano ideal para o teu negócio</h1>
+          <p className="text-lg text-slate-600 max-w-2xl mx-auto mb-8">
+            Desenvolvemos planos adaptados à realidade de Moçambique, com opções para todos os tipos de fornecedores de internet.
+          </p>
+        </div>
+      </section>
+
+      {/* Cartões de Planos */}
+      <section className="mx-auto max-w-7xl px-5 py-12">
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {plans.length > 0 ? plans.map(p => (
+            <article 
+              key={p.id} 
+              className="rounded-2xl border border-slate-200 bg-white p-6 shadow-soft transition hover:border-brand hover:shadow-brand/10"
+            >
+              {p.active ? (
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-brand bg-brand-pale px-3 py-1 text-xs font-bold text-brand mb-4">
+                  <ShieldCheck size={12} /> Disponível
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-bold text-slate-500 mb-4">
+                  Indisponível
+                </span>
+              )}
+              
+              <h3 className="text-xl font-extrabold text-ink mb-2">{p.name}</h3>
+              <div className="mb-4">
+                <span className="text-3xl font-bold text-ink">
+                  {Number(p.price_mzn).toLocaleString("pt-MZ")} <span className="text-sm font-semibold text-slate-500">MT/mês</span>
+                </span>
+              </div>
+              
+              <ul className="space-y-3 mb-6">
+                {(Array.isArray(p.features)
+                  ? p.features
+                  : typeof p.features === "string"
+                    ? (p.features as unknown as string).split(",")
+                    : []
+                ).map((b, i) => (
+                  <li key={i} className="flex items-center gap-2 text-sm text-slate-600">
+                    <Wifi size={16} className="text-brand shrink-0" /> {String(b).trim()}
+                  </li>
+                ))}
+                {p.listing_limit && (
+                  <li className="flex items-center gap-2 text-sm text-slate-600">
+                    <Building2 size={16} className="text-brand shrink-0" /> Limite: {p.listing_limit} anúncios
+                  </li>
+                )}
+              </ul>
+              
+              <button 
+                className={`w-full rounded-lg py-3 font-bold text-sm transition ${
+                  p.active 
+                    ? "bg-brand text-white hover:bg-brand-dark" 
+                    : "bg-slate-50 text-slate-600 hover:bg-slate-100"
+                }`}
+              >
+                {p.active ? "Solicitar Subscrição" : "Indisponível"}
+              </button>
+              
+              <p className="mt-4 text-[10px] text-slate-400 text-center">
+                Os pagamentos são confirmados manualmente pela equipa.
+              </p>
+            </article>
+          )) : (
+            <div className="rounded-2xl border border-dashed border-slate-200 bg-white p-12 text-center">
+              <p className="text-xl font-extrabold text-ink mb-2">Nenhum plano disponível</p>
+              <p className="text-sm text-slate-500">Os planos serão atualizados em breve.</p>
+            </div>
+          )}
+        </div>
+
+        {/* FAQ */}
+        <section className="mt-16 mx-auto max-w-3xl">
+          <h2 className="text-2xl font-extrabold text-ink text-center mb-8">Perguntas Frequentes</h2>
+          <div className="space-y-4">
+            {[
+              { q: "Como funciona a aprovação?", a: "A equipa My Net analisa cada candidatura em 48-72 horas úteis." },
+              { q: "Posso alterar o plano?", a: "Sim, podes solicitar a alteração a qualquer momento através do painel." },
+              { q: "Os pagamentos são automáticos?", a: "Não, os pagamentos são confirmados manualmente pela equipa." }
+            ].map((item, i) => (
+              <div key={i} className="rounded-xl border border-slate-200 bg-white p-5 shadow-soft">
+                <h4 className="font-bold text-ink mb-2">{item.q}</h4>
+                <p className="text-sm text-slate-600">{item.a}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+      </section>
+
+      {/* Footer */}
+      <section className="border-t border-slate-100 bg-white py-8">
+        <div className="mx-auto max-w-7xl px-5 text-center text-sm text-slate-500">
+          <Link href="/" className="font-extrabold text-ink text-xl mb-4 block">mynet</Link>
+          <p>Marketplace de conectividade em Moçambique · Preços em MT</p>
+          <div className="flex justify-center gap-4 mt-4">
+            <Link href="/" className="hover:text-brand transition-colors">Início</Link>
+            <Link href="/pesquisa" className="hover:text-brand transition-colors">Explorar</Link>
+            <Link href="/login" className="hover:text-brand transition-colors">Entrar</Link>
+            <Link href="/register" className="hover:text-brand transition-colors">Criar conta</Link>
+            <Link href="/#suporte" className="hover:text-brand transition-colors">Suporte</Link>
+          </div>
+        </div>
+      </section>
+    </main>
+  );
+}

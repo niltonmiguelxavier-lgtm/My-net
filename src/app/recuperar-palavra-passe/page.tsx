@@ -1,3 +1,48 @@
-"use client";
-import Link from "next/link";import {FormEvent,useState} from "react";import {createSupabaseBrowserClient} from "@/lib/supabase/client";
-export default function ForgotPassword(){const [message,setMessage]=useState("");const [busy,setBusy]=useState(false);async function submit(e:FormEvent<HTMLFormElement>){e.preventDefault();setBusy(true);setMessage("");try{const email=String(new FormData(e.currentTarget).get("email"));const sb=createSupabaseBrowserClient();const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:`${location.origin}/actualizar-palavra-passe`});if(error)throw error;setMessage("Se a conta existir, receberás instruções por email.");}catch(err){setMessage(err instanceof Error?err.message:"Não foi possível enviar o pedido.");}finally{setBusy(false);}}return <main className="grid min-h-screen place-items-center bg-slate-50 px-5"><section className="w-full max-w-md rounded-2xl border bg-white p-8 shadow-soft"><Link href="/" className="font-extrabold text-ink">mynet</Link><h1 className="mt-6 text-2xl font-extrabold text-ink">Recuperar palavra-passe</h1><p className="mt-2 text-sm text-slate-600">Indica o email da conta para receberes um link seguro de recuperação.</p><form onSubmit={submit} className="mt-6 space-y-4"><input required type="email" name="email" maxLength={320} placeholder="Email" className="w-full rounded-xl border-slate-300"/>{message&&<p role="status" className="text-sm text-slate-700">{message}</p>}<button disabled={busy} className="w-full rounded-xl bg-brand px-4 py-3 font-bold text-white">{busy?"A enviar…":"Enviar instruções"}</button></form><Link href="/login" className="mt-5 block text-center text-sm font-semibold text-brand">Voltar ao início de sessão</Link></section></main>}
+import Link from "next/link";
+import { ShieldCheck } from "lucide-react";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { RecoveryForm } from "@/components/auth/RecoveryForm";
+
+export default async function RecuperarPage() {
+  const supabase = await createSupabaseServerClient();
+  const { data: { user } } = supabase ? await supabase.auth.getUser() : { data: { user: null } };
+  if (user) return <Link href="/dashboard" className="text-brand">Já estás ligado. Ir para o dashboard</Link>;
+
+  return (
+    <main className="min-h-screen bg-slate-50 flex items-center justify-center p-5">
+      <div className="w-full max-w-md rounded-2xl border bg-white p-8 shadow-soft">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-8">
+          <Link href="/" className="font-extrabold text-ink text-xl">
+            my<span className="text-brand">net</span>
+          </Link>
+          <Link href="/login" className="text-sm font-semibold text-brand hover:underline">
+            Voltar ao Login
+          </Link>
+        </div>
+
+        {/* Título */}
+        <div className="text-center mb-8">
+          <p className="text-sm font-bold text-brand uppercase tracking-wider mb-2">Recuperar</p>
+          <h1 className="text-2xl font-extrabold text-ink">Redefinir palavra-passe</h1>
+          <p className="text-sm text-slate-500 mt-2">Introduz o teu email para receber instruções.</p>
+        </div>
+
+        <RecoveryForm />
+
+        {/* Mensagem de Sucesso/Erro */}
+        <div className="mt-6 rounded-xl bg-teal-50 p-4 flex items-start gap-3 border border-teal-100">
+          <ShieldCheck size={20} className="text-brand shrink-0 mt-0.5" />
+          <p className="text-xs text-teal-700">
+            <strong>Segurança:</strong> Verificaremos o teu email e enviaremos um link seguro.
+          </p>
+        </div>
+
+        {/* Footer */}
+        <div className="mt-8 text-center text-xs text-slate-500">
+          <p>Lembras-te? <Link href="/login" className="text-brand hover:underline">Entrar</Link></p>
+        </div>
+      </div>
+    </main>
+  );
+}
