@@ -238,4 +238,36 @@ O cruzamento sistemático de todos os `select` com o schema real revelou consult
 | `GET /vendedor/perfil` | ✅ 200 (página renderiza; 307 → `/login` sem sessão, como as restantes rotas protegidas) |
 | Sintaxe da migration | ✅ 7 statements validados com parser PostgreSQL (`pglast`) |
 
-> **Ação necessária no Supabase:** aplicar `supabase/migrations/0003_seller_profile_self_service.sql` (`supabase db push` ou SQL Editor) para que a edição do perfil comercial fique activa em produção. Sem ela, a página abre em modo leitura e a gravação devolve erro tratado na interface.
+### Aplicado em produção (projeto Supabase `tjzaxofzytqgszginmwn` — "My net")
+
+A migration foi aplicada no projeto real e verificada. **Descoberta importante durante a aplicação:** o ambiente de produção tem `GRANT UPDATE` **ao nível da tabela** em `public.sellers` para `authenticated` (todas as colunas). Se apenas a política fosse adicionada, um vendedor poderia alterar `status`, `average_rating` e `reviews_count` — **escalada de privilégios silenciosa**. A migration foi endurecida antes de correr:
+
+```sql
+revoke update on public.sellers from anon, authenticated;
+grant update (business_name, description, phone, email, province, city)
+  on public.sellers to authenticated;
+```
+
+**Estado final dos privilégios de UPDATE:**
+
+| Role | Colunas com UPDATE |
+|---|---|
+| `authenticated` | `business_name, city, description, email, phone, province` |
+| `anon` | *(nenhuma)* |
+
+**Objetos criados:** política `sellers_update_own` (UPDATE), função `guard_seller_profile()`, trigger `seller_profile_guard` (BEFORE UPDATE).
+
+**Testes de segurança executados em transação com `rollback` (nada persistiu):**
+
+| # | Cenário | Resultado |
+|---|---|---|
+| 1 | Vendedor tenta alterar `status` | 🛡️ bloqueado — `permission denied for table sellers` |
+| 2 | Vendedor tenta alterar `average_rating` | 🛡️ bloqueado — `permission denied for table sellers` |
+| 3 | Vendedor altera campo permitido | ✅ aceite |
+| 4 | Outro utilizador autenticado tenta alterar a linha | 🛡️ RLS — 0 linhas afetadas |
+| 5 | Dono da linha grava campo permitido | ✅ 1 linha |
+| 6 | `service_role` tenta alterar `status` (contorna grants/RLS) | 🛡️ trigger — `Seller protected fields cannot be changed by the seller` |
+| 7 | Nome com 1 caractere | 🛡️ trigger — `Invalid business name length` |
+| 8 | Integridade dos dados após rollback | ✅ inalterados |
+
+**Verificação de resíduos:** `sellers=1`, `lixo_intruso=0`, `funcao_guard=1`, `trigger_guard=1`, `anuncios=0` — sem sobras dos testes.
