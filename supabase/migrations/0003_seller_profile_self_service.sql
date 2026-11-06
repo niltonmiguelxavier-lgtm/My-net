@@ -1,31 +1,37 @@
--- My Net: permite ao vendedor manter o próprio perfil comercial.
+-- My Net: permite ao vendedor manter o próprio perfil comercial (self-service).
 --
--- Contexto da lacuna: as políticas existentes só permitem ao administrador
--- escrever em public.sellers (sellers_admin_manage). Sem isto, a página de
--- edição do perfil comercial não teria como gravar. Esta migration NÃO altera
--- o modelo de dados: apenas acrescenta uma política de UPDATE e um trigger de
--- protecção, seguindo o padrão já usado em 0001_initial_schema.sql e
--- 0002_security_hardening.sql (guard_* + revoke execute).
+-- Lacuna: as políticas existentes só permitem ao administrador escrever em
+-- public.sellers (sellers_admin_manage). O vendedor não tinha qualquer política
+-- de UPDATE, pelo que a página /vendedor/perfil não conseguia gravar.
+--
+-- ATENÇÃO ao privilégio existente: em produção, o role `authenticated` tem
+-- GRANT UPDATE **ao nível da tabela** em public.sellers (todas as colunas,
+-- incluindo status, average_rating e reviews_count). Adicionar apenas a
+-- política permitiria ao vendedor auto-aprovar-se. Por isso este ficheiro
+-- revoga o UPDATE de tabela e concede UPDATE apenas nas colunas editáveis,
+-- seguindo o padrão de grants por coluna já usado em `profiles` e `sellers`.
 --
 -- Campos protegidos (nunca alteráveis pelo vendedor):
 --   user_id, status, average_rating, reviews_count, business_type
--- Qualquer tentativa de os alterar aborta a transacção.
+--
+-- NÃO altera modelo de dados: sem tabelas, colunas, tipos ou dados novos.
 
 begin;
 
--- 1. Política de UPDATE para o dono do registo (além de is_admin()).
+-- 1. Política de UPDATE para o dono do registo (o administrador mantém
+--    sellers_admin_manage, inalterada).
 create policy sellers_update_own on public.sellers for update to authenticated
  using (user_id = auth.uid())
  with check (user_id = auth.uid());
 
--- 2. Privilégios de coluna: o vendedor só recebe UPDATE nestas colunas.
---    (O role table-wide UPDATE não é concedido, tal como em profiles/sellers
---     já existentes; o PostgREST aplica o mesmo filtro de colunas.)
+-- 2. Privilégios de coluna: retira o UPDATE de tabela e concede apenas o
+--    conjunto editável. O anon fica sem qualquer UPDATE (não precisa).
+revoke update on public.sellers from anon, authenticated;
 grant update (business_name, description, phone, email, province, city)
   on public.sellers to authenticated;
 
--- 3. Trigger: garantir que campos sensíveis não mudam e validar limites
---    equivalentes às constraints/validações da aplicação.
+-- 3. Trigger: campos sensíveis imutáveis + validação de limites.
+--    Vale como segunda linha de defesa caso os grants sejam alterados no futuro.
 create or replace function public.guard_seller_profile() returns trigger
 language plpgsql security definer set search_path=public as $$
 begin
@@ -50,7 +56,7 @@ begin
  if new.phone is null or char_length(btrim(new.phone)) not between 6 and 40 then
    raise exception 'Invalid phone';
  end if;
- if new.email is null or new.email !~ '^[^@\s]+@[^@\s]+\.[^@\s]+$' or char_length(new.email) > 320 then
+ if new.email is null or new.email !~ '^[^@[:space:]]+@[^@[:space:]]+\.[^@[:space:]]+$' or char_length(new.email) > 320 then
    raise exception 'Invalid email';
  end if;
  if new.province is null or char_length(btrim(new.province)) not between 2 and 100 then
